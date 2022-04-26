@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from pickletools import read_string1
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -20,12 +21,15 @@ def song_list(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-@api_view(['GET'])
+@api_view(['GET', 'PUT'])
 def song_detail(request, pk):
-    try:
-       song = Song.objects.get(pk=pk)
-       serializer = SongSerializer(song);
-       return Response(serializer.data)
-
-    except Song.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    song = get_object_or_404(Song, pk=pk)
+    if request.method == 'GET':
+        serializer = SongSerializer(song)
+        return Response(serializer.data)
+    elif request.method == 'PUT':
+        serializer = SongSerializer(Song, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data) 
+  
